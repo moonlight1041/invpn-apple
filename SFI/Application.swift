@@ -17,9 +17,11 @@ struct Application: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
-                .environmentObject(environments)
-                .environmentObject(peerStore)
+            InVpnRootView {
+                MainView()
+                    .environmentObject(environments)
+                    .environmentObject(peerStore)
+            }
         }
     }
 }
