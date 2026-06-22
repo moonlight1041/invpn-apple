@@ -9,7 +9,9 @@ import SwiftUI
 /// INVPN account / servers panel — tier badge, informational server list (Android parity),
 /// BRILLIANT invite creation, and logout. Presented as a sheet from the main screen. Additive:
 /// does not touch the existing connect/install flow.
-struct InVpnPanelView: View {
+public struct InVpnPanelView: View {
+    public init() {}
+
     @Environment(\.dismiss) private var dismiss
     @State private var inviteLink: String?
     @State private var inviteLoading = false
@@ -31,7 +33,7 @@ struct InVpnPanelView: View {
         ServerInfo(flag: "🇺🇸", country: "США · Нью-Джерси", type: "Статический", available: false, note: "Скоро"),
     ]
 
-    var body: some View {
+    public var body: some View {
         NavigationView {
             List {
                 Section {
@@ -103,7 +105,9 @@ struct InVpnPanelView: View {
                 }
             }
         }
+        #if !os(macOS)
         .navigationViewStyle(.stack)
+        #endif
     }
 
     private func createInvite() {

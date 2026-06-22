@@ -21,6 +21,7 @@ public struct MacApplication: Scene {
     public init() {}
     public var body: some Scene {
         Window("sing-box", id: "main", content: {
+            InVpnRootView {
             MainView()
                 .onAppear {
                     Task {
@@ -69,6 +70,8 @@ public struct MacApplication: Scene {
                         await SharedPreferences.menuBarExtraSpeedMode.set(newValue)
                     }
                 }
+            }
+            .environmentObject(environments)
         })
         .windowResizability(.contentSize)
         .commands {

@@ -27,14 +27,18 @@ struct InVpnAuthView: View {
 
                 if useLogin {
                     TextField("Логин", text: $username)
+                        #if !os(macOS)
                         .textInputAutocapitalization(.never)
+                        #endif
                         .autocorrectionDisabled()
                         .textFieldStyle(.roundedBorder)
                     SecureField("Пароль", text: $password)
                         .textFieldStyle(.roundedBorder)
                 } else {
                     TextField("Ссылка или код приглашения", text: $invite)
+                        #if !os(macOS)
                         .textInputAutocapitalization(.never)
+                        #endif
                         .autocorrectionDisabled()
                         .textFieldStyle(.roundedBorder)
                 }
