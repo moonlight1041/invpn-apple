@@ -53,7 +53,7 @@ public extension NavigationPage {
     var title: String {
         switch self {
         case .dashboard:
-            return String(localized: "Dashboard")
+            return String(localized: "INVPN")
         #if os(macOS)
             case .groups:
                 return String(localized: "Groups")
@@ -72,7 +72,7 @@ public extension NavigationPage {
     private var iconImage: String {
         switch self {
         case .dashboard:
-            return "text.and.command.macwindow"
+            return "shield.lefthalf.filled"
         #if os(macOS)
             case .groups:
                 return "rectangle.3.group.fill"

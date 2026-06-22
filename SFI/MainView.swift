@@ -16,6 +16,7 @@ struct MainView: View {
     @State private var showConnections = false
     @State private var buttonState = ButtonVisibilityState()
     @State private var initializedTabs: Set<NavigationPage> = []
+    @State private var showInvpnPanel = false
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
@@ -62,6 +63,15 @@ struct MainView: View {
                 if !initializedTabs.contains(page) {
                     DispatchQueue.main.async {
                         initializedTabs.insert(page)
+                    }
+                }
+            }
+            .toolbar {
+                if page == .dashboard {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { showInvpnPanel = true } label: {
+                            Image(systemName: "person.crop.circle")
+                        }
                     }
                 }
             }
@@ -247,6 +257,9 @@ struct MainView: View {
                 }
                 .sheet(isPresented: $showConnections) {
                     ConnectionsSheetContent()
+                }
+                .sheet(isPresented: $showInvpnPanel) {
+                    InVpnPanelView()
                 }
         }
         .onAppear {
