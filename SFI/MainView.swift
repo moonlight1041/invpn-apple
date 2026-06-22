@@ -66,17 +66,17 @@ struct MainView: View {
                     }
                 }
             }
-            .toolbar {
-                if page == .dashboard {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button { showInvpnPanel = true } label: {
-                            Image(systemName: "person.crop.circle")
-                        }
+        // Branch at the view level (a conditional INSIDE a ToolbarContentBuilder needs iOS 16).
+        if page == .logs {
+            content.navigationBarTitleDisplayMode(.inline)
+        } else if page == .dashboard {
+            content.toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showInvpnPanel = true } label: {
+                        Image(systemName: "person.crop.circle")
                     }
                 }
             }
-        if page == .logs {
-            content.navigationBarTitleDisplayMode(.inline)
         } else {
             content
         }
