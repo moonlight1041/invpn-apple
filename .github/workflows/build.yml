@@ -15,7 +15,9 @@ permissions:
 
 env:
   GO_VER: "1.25.10"
-  SINGBOX_TAG: "v1.14.0-alpha.33"   # matches the apple `dev` branch (Jailbreak/package.sh -> 1.14.0~alpha.33)
+  # sing-box `testing` branch HEAD (2026-06-21) — matches the apple dev branch's Libbox API
+  # (it calls CommandClient.getAPIVersion, absent from the alpha.33 tag). Pinned for reproducibility.
+  SINGBOX_COMMIT: "236430100c3300d7c75e99a277d4984889639d3f"
 
 jobs:
   build:
@@ -44,14 +46,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Libbox.xcframework
-          key: libbox-xcframework-${{ env.SINGBOX_TAG }}-go${{ env.GO_VER }}
+          key: libbox-xcframework-${{ env.SINGBOX_COMMIT }}-go${{ env.GO_VER }}
 
       - name: Build Libbox.xcframework (gomobile)
         if: steps.cache-libbox.outputs.cache-hit != 'true'
         run: |
           set -euxo pipefail
-          git clone --depth 1 -b "${SINGBOX_TAG}" https://github.com/SagerNet/sing-box.git /tmp/sing-box
-          cd /tmp/sing-box
+          mkdir -p /tmp/sing-box && cd /tmp/sing-box
+          git init -q
+          git remote add origin https://github.com/SagerNet/sing-box.git
+          git fetch -q --depth 1 origin "${SINGBOX_COMMIT}"
+          git checkout -q FETCH_HEAD
           make lib_install
           export PATH="$PATH:$(go env GOPATH)/bin"
           make lib_apple
