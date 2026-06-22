@@ -17,11 +17,13 @@ struct Application: App {
 
     var body: some Scene {
         WindowGroup {
+            // Environment objects live above the auth gate so the InVPN auth screen (and
+            // ConfigInstaller it triggers) can use ExtensionEnvironments too; MainView inherits them.
             InVpnRootView {
                 MainView()
-                    .environmentObject(environments)
-                    .environmentObject(peerStore)
             }
+            .environmentObject(environments)
+            .environmentObject(peerStore)
         }
     }
 }

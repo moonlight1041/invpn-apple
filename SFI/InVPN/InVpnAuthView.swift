@@ -1,7 +1,9 @@
+import Library
 import SwiftUI
 
 /// InVPN login / invite-redeem screen — mirrors Android `compose/screen/auth/AuthScreen.kt`.
 struct InVpnAuthView: View {
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @State private var useLogin = false
     @State private var invite = ""
     @State private var username = ""
@@ -81,7 +83,9 @@ struct InVpnAuthView: View {
                 } else {
                     try await AuthRepository.shared.redeemInvite(code: Self.extractInviteCode(invite))
                 }
-                // Config fetch + profile install is wired in the next increment (ConfigInstaller).
+                // Best-effort: fetch + install the per-user config as the managed profile so the
+                // dashboard's connect button uses it. Failures are non-fatal (retry from connect).
+                try? await ConfigInstaller.refreshAndInstall(environments: environments)
             } catch {
                 self.error = (error as? ApiException)?.message ?? error.localizedDescription
             }

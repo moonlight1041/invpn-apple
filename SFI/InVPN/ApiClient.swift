@@ -35,7 +35,9 @@ final class ApiClient {
 
     /// BRILLIANT only — mint an invite; returns the shareable link.
     func createInvite(deviceToken: String, name: String?, level: String) async throws -> InviteResult {
-        try await post("/api/v1/invites", body: ["invitee_name": name as Any, "level": level], bearer: deviceToken)
+        var body: [String: Any] = ["level": level]
+        body["invitee_name"] = name ?? NSNull()       // explicit JSON null, not a Swift Optional
+        return try await post("/api/v1/invites", body: body, bearer: deviceToken)
     }
 
     func fetchConfig(deviceToken: String) async throws -> ConfigBlob {
