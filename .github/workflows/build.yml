@@ -100,3 +100,31 @@ jobs:
           name: InVPN-ios-unsigned-ipa
           path: InVPN-ios-unsigned.ipa
           if-no-files-found: error
+
+      # macOS (SFM) build — for free real-tunnel testing on the user's Mac (Xcode/dev-mode).
+      - name: Build SFM (macOS, unsigned)
+        run: |
+          set -euxo pipefail
+          xcodebuild build \
+            -project sing-box.xcodeproj \
+            -scheme SFM \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/dd-mac \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" CODE_SIGN_ENTITLEMENTS=""
+
+      - name: Package macOS app
+        run: |
+          set -euxo pipefail
+          APP="$(find build/dd-mac/Build/Products -maxdepth 2 -name '*.app' -type d | head -1)"
+          test -n "$APP"
+          echo "app: $APP"
+          ditto -c -k --keepParent "$APP" InVPN-macos.zip
+          ls -la InVPN-macos.zip
+
+      - name: Upload macOS app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InVPN-macos-app
+          path: InVPN-macos.zip
+          if-no-files-found: error
