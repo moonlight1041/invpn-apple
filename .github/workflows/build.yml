@@ -1,0 +1,97 @@
+name: Build InVPN iOS (unsigned IPA)
+
+# Builds Libbox.xcframework from sing-box via gomobile, then xcodebuild's the SFI (iOS)
+# scheme WITHOUT code signing and packages an unsigned .ipa for sideloading (AltStore /
+# SideStore re-sign on device). NOTE: a working VPN tunnel (NEPacketTunnelProvider) needs a
+# PAID Apple Developer account — a free Apple ID can install but cannot run the extension.
+
+on:
+  push:
+    branches: [ "feat/**" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GO_VER: "1.25.10"
+  SINGBOX_TAG: "v1.14.0-alpha.33"   # matches the apple `dev` branch (Jailbreak/package.sh -> 1.14.0~alpha.33)
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Toolchain info
+        run: |
+          xcodebuild -version
+          sw_vers
+          xcodebuild -list -project sing-box.xcodeproj | sed -n '1,60p' || true
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VER }}
+
+      # Libbox.xcframework is a build artifact (like the Android libbox.aar) expected at the repo
+      # root by the Xcode project. Building it via gomobile is the slow part -> cache it.
+      - name: Cache Libbox.xcframework
+        id: cache-libbox
+        uses: actions/cache@v4
+        with:
+          path: Libbox.xcframework
+          key: libbox-xcframework-${{ env.SINGBOX_TAG }}-go${{ env.GO_VER }}
+
+      - name: Build Libbox.xcframework (gomobile)
+        if: steps.cache-libbox.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
+          git clone --depth 1 -b "${SINGBOX_TAG}" https://github.com/SagerNet/sing-box.git /tmp/sing-box
+          cd /tmp/sing-box
+          make lib_install
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          make lib_apple
+          XCF="$(find . -name 'Libbox.xcframework' -type d -print -quit)"
+          test -n "$XCF"
+          rm -rf "$GITHUB_WORKSPACE/Libbox.xcframework"
+          cp -R "$XCF" "$GITHUB_WORKSPACE/Libbox.xcframework"
+
+      - name: Verify Libbox.xcframework present
+        run: ls -la Libbox.xcframework && find Libbox.xcframework -maxdepth 2 -name '*.framework' -o -maxdepth 2 -name 'Info.plist'
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project sing-box.xcodeproj -scheme SFI
+
+      - name: Build SFI (unsigned)
+        run: |
+          set -euxo pipefail
+          xcodebuild build \
+            -project sing-box.xcodeproj \
+            -scheme SFI \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" CODE_SIGN_ENTITLEMENTS=""
+
+      - name: Package unsigned IPA
+        run: |
+          set -euxo pipefail
+          APP="$(find build/dd/Build/Products -maxdepth 2 -name '*.app' -type d | head -1)"
+          test -n "$APP"
+          echo "app: $APP"
+          rm -rf Payload InVPN-ios-unsigned.ipa
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry InVPN-ios-unsigned.ipa Payload
+          ls -la InVPN-ios-unsigned.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InVPN-ios-unsigned-ipa
+          path: InVPN-ios-unsigned.ipa
+          if-no-files-found: error
