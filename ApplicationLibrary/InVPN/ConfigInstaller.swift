@@ -14,14 +14,21 @@ enum ConfigInstaller {
         let blob = try await ApiClient.shared.fetchConfig(deviceToken: creds.deviceToken)
         let bodyKey = try Crypto.b64UrlDecode(creds.bodyKeyB64)
         let data = try Crypto.decryptWithBodyKey(bodyKey, nonceB64: blob.nonce, ctB64: blob.ct)
-        guard let configStr = String(data: data, encoding: .utf8) else {
+        guard let original = String(data: data, encoding: .utf8) else {
             throw ApiException(code: -1, message: "config decode failed")
         }
 
-        // Validate with the same engine that will run it.
+        // Optionally inject «РФ напрямую» routing, then validate with the engine that will run it.
+        // If the injected config is rejected, fall back to the original so the tunnel never breaks.
+        var configStr = RouteSplit.ruDirect ? RouteSplit.injectRuDirect(original) : original
         var checkError: NSError?
         LibboxCheckConfig(configStr, &checkError)
-        if let checkError { throw checkError }
+        if checkError != nil {
+            configStr = original
+            var fallbackError: NSError?
+            LibboxCheckConfig(configStr, &fallbackError)
+            if let fallbackError { throw fallbackError }
+        }
 
         let name = InVpnConfig.managedProfileName
         let profileID: Int64

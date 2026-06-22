@@ -16,6 +16,7 @@ public struct InVpnPanelView: View {
     @State private var inviteLink: String?
     @State private var inviteLoading = false
     @State private var inviteError: String?
+    @State private var ruDirect = RouteSplit.ruDirect
 
     private struct ServerInfo: Identifiable {
         let id = UUID()
@@ -65,6 +66,17 @@ public struct InVpnPanelView: View {
                                 .foregroundStyle(s.available ? InVpnTheme.sea : .secondary)
                         }
                     }
+                }
+
+                Section("Маршрутизация") {
+                    Toggle("Российские сервисы напрямую", isOn: $ruDirect)
+                        .tint(InVpnTheme.sea)
+                        .onChange(of: ruDirect) { newValue in
+                            RouteSplit.ruDirect = newValue
+                            Task { try? await ConfigInstaller.refreshAndInstall(environments: nil) }
+                        }
+                    Text("РФ-сайты и сервисы идут напрямую, мимо VPN. Применится при следующем подключении.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
 
                 if AuthRepository.shared.isBrilliant {
