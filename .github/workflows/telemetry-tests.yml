@@ -15,5 +15,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Sync telemetry sources into the test package
+        run: cp ApplicationLibrary/InVPN/Telemetry/*.swift TelemetryKit/Sources/TelemetryKit/
+
       - name: swift test
         run: cd TelemetryKit && swift test -v
