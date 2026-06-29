@@ -114,7 +114,7 @@ public enum Telemetry {
         CommandClient.telemetryOnConnectionError = { kind, message in
             let phase: FailPhase = (kind == .connectFailed) ? .timeout : .noInternet
             Task {
-                await record(.connectFail, conn: ConnInfo(errorText: message, failPhase: phase))
+                await record(.connectFail, conn: ConnInfo(failPhase: phase, errorText: message))
             }
         }
 
