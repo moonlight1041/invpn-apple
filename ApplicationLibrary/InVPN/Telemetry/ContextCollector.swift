@@ -31,7 +31,7 @@ public final class ContextCollector: @unchecked Sendable {
 
     private let monitor = NWPathMonitor()
     private let lock    = NSLock()
-    private var _latestPath: NWPath?
+    private var _latestPath: Network.NWPath?
 
     public init() {
         monitor.pathUpdateHandler = { [weak self] path in
@@ -49,7 +49,7 @@ public final class ContextCollector: @unchecked Sendable {
 
     // MARK: - Private helpers
 
-    private var latestPath: NWPath? {
+    private var latestPath: Network.NWPath? {
         lock.lock()
         defer { lock.unlock() }
         return _latestPath
@@ -58,7 +58,7 @@ public final class ContextCollector: @unchecked Sendable {
     /// Map NWPath to a canonical network-type string.
     /// Prefers `availableInterfaces.first?.type` (mirrors ExtensionPlatformInterface),
     /// falls back to `usesInterfaceType` queries.
-    private func networkType(for path: NWPath) -> String {
+    private func networkType(for path: Network.NWPath) -> String {
         if let first = path.availableInterfaces.first {
             switch first.type {
             case .wifi:          return "wifi"
