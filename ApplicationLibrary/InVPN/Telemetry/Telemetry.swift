@@ -94,6 +94,10 @@ public enum Telemetry {
     /// dependency), so `CommandClient` and `ExtensionPlatformInterface` expose
     /// plain `(@Sendable …) -> Void` static vars.  This function sets them.
     public static func installHooks() {
+        // B.6 — register the flusher so high-priority events and foreground wake-up
+        // trigger an upload of buffered events.
+        flushHandler = { await TelemetryClient.shared.flush() }
+
         // connect_success — command channel to the NE came up
         CommandClient.telemetryOnConnected = {
             Task { await record(.connectSuccess) }

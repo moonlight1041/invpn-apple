@@ -44,6 +44,31 @@ final class ApiClient {
         try await post("/api/v1/config", body: [:], bearer: deviceToken)
     }
 
+    /// POST a pre-serialised telemetry envelope to /t/v1/events.
+    ///
+    /// - Parameters:
+    ///   - token:    Device token — sent as `Authorization: Bearer <token>`.
+    ///   - envelope: AES-256-GCM envelope JSON produced by `TelemetryCrypto.sealBatch`.
+    /// - Returns: HTTP status code (200 / 400 / 401 / …), or 0 on transport error.
+    ///
+    /// Never throws — returns 0 on any URLError so the caller can handle it as a
+    /// retriable failure without crashing the telemetry flush.
+    func postTelemetry(token: String, envelope: Data) async -> Int {
+        guard let url = URL(string: InVpnConfig.apiBase + "/t/v1/events") else { return 0 }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 20
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.httpBody = envelope
+        do {
+            let (_, resp) = try await session.data(for: req)
+            return (resp as? HTTPURLResponse)?.statusCode ?? 0
+        } catch {
+            return 0
+        }
+    }
+
     private func post<T: Decodable>(_ path: String, body: [String: Any], bearer: String? = nil) async throws -> T {
         guard let url = URL(string: InVpnConfig.apiBase + path) else {
             throw ApiException(code: -1, message: "bad url")
