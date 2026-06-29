@@ -64,6 +64,14 @@ enum Database {
                     t.column("secret", .text).notNull().defaults(to: "")
                 }
             }
+            migrator.registerMigration("add_telemetry_buffer") { db in
+                try db.create(table: "telemetry_events") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("ts", .double).notNull()      // insertion epoch, FIFO ordering
+                    t.column("payload", .text).notNull()   // one event's JSON string
+                    t.column("attempts", .integer).notNull().defaults(to: 0)
+                }
+            }
             try migrator.migrate(database)
             return database
         } catch {
