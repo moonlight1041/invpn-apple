@@ -100,12 +100,18 @@ public enum Telemetry {
 
         // connect_success — command channel to the NE came up
         CommandClient.telemetryOnConnected = {
-            Task { await record(.connectSuccess) }
+            Task {
+                await record(.connectSuccess)
+                TelemetryHeartbeat.shared.start()
+            }
         }
 
         // disconnect — command channel closed (clean teardown)
         CommandClient.telemetryOnDisconnected = {
-            Task { await record(.disconnect) }
+            Task {
+                await record(.disconnect)
+                TelemetryHeartbeat.shared.stop()
+            }
         }
 
         // connect_fail — a ConnectionError was created
