@@ -15,8 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Sync telemetry sources into the test package
-        run: cp ApplicationLibrary/InVPN/Telemetry/*.swift TelemetryKit/Sources/TelemetryKit/
+      - name: Sync PURE telemetry sources into the test package
+        # Only the app-independent files compile in the standalone SwiftPM package.
+        # The glue files (TelemetryStore/ContextCollector/Telemetry/TelemetryClient)
+        # import Library/app types and are verified by the app build, not here.
+        run: cp ApplicationLibrary/InVPN/Telemetry/{TelemetryCrypto,Gzip,TelemetryEvent,TelemetryKit}.swift TelemetryKit/Sources/TelemetryKit/
 
       - name: swift test
         run: cd TelemetryKit && swift test -v
