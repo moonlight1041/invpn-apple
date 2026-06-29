@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import Library
 
 // MARK: - Telemetry event buffer backed by the shared app-group DB.
 //

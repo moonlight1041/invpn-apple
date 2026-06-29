@@ -1,8 +1,8 @@
 import Foundation
 import GRDB
 
-enum Database {
-    static let sharedWriter = makeShared()
+public enum Database {
+    public static let sharedWriter: any DatabaseWriter = makeShared()
 
     private static func makeShared() -> any DatabaseWriter {
         do {

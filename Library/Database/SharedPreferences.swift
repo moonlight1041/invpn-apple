@@ -158,4 +158,9 @@ public enum SharedPreferences {
 
     public static let enabledDashboardCards = Preference<[String]>("enabled_dashboard_cards", defaultValue: [])
     public static let dashboardCardOrder = Preference<[String]>("dashboard_card_order", defaultValue: [])
+
+    // Telemetry
+
+    public static let telemetryConsentGiven = Preference<Bool>("telemetry_consent_given", defaultValue: false)
+    public static let telemetryDeviceId = Preference<String>("telemetry_device_id", defaultValue: "")
 }

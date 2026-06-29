@@ -163,6 +163,19 @@ public class CommandClient: ObservableObject {
         self.init([connectionType], logMaxLines: logMaxLines, localOnly: localOnly)
     }
 
+    // MARK: - Telemetry hooks
+    // Library cannot import ApplicationLibrary (circular dependency).
+    // ApplicationLibrary sets these once at app launch via Telemetry.installHooks().
+    // Every call site is wrapped in Task { } so it is guaranteed non-blocking.
+
+    /// Called after the command channel connects successfully.
+    public static var telemetryOnConnected: (@Sendable () -> Void)?
+    /// Called after the command channel disconnects (clean or error-triggered).
+    public static var telemetryOnDisconnected: (@Sendable () -> Void)?
+    /// Called when a `ConnectionError` is created.
+    /// Parameters: error kind (.connectFailed or .connectionLost), message string.
+    public static var telemetryOnConnectionError: (@Sendable (ConnectionError.Kind, String) -> Void)?
+
     public func setupMockData() {
         isConnected = true
         clashModeList = ["rule", "global", "direct"]
@@ -316,6 +329,9 @@ public class CommandClient: ObservableObject {
         await MainActor.run { [self] in
             guard token == activeConnectionToken else { return }
             lastError = ConnectionError(kind: .connectFailed, message: error.localizedDescription)
+            // Observe-only; fire-and-forget telemetry hook.
+            let msg = error.localizedDescription
+            Task { CommandClient.telemetryOnConnectionError?(.connectFailed, msg) }
         }
     }
 
@@ -359,6 +375,8 @@ public class CommandClient: ObservableObject {
                 }
                 commandClient.lastError = nil
                 commandClient.isConnected = true
+                // Observe-only; fire-and-forget telemetry hook.
+                Task { CommandClient.telemetryOnConnected?() }
             }
         }
 
@@ -367,8 +385,12 @@ public class CommandClient: ObservableObject {
                 guard isActiveConnection() else { return }
                 if let message {
                     commandClient.lastError = ConnectionError(kind: .connectionLost, message: message)
+                    // Observe-only; fire-and-forget telemetry hook.
+                    Task { CommandClient.telemetryOnConnectionError?(.connectionLost, message) }
                 }
                 commandClient.isConnected = false
+                // Observe-only; fire-and-forget telemetry hook.
+                Task { CommandClient.telemetryOnDisconnected?() }
             }
             if let message {
                 logger.debug("client disconnected: \(message)")

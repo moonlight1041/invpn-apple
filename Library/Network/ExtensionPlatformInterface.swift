@@ -275,11 +275,21 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         false
     }
 
+    // MARK: - Telemetry hook
+    // The NE process only links Library; ApplicationLibrary (which sets this) is not loaded there.
+    // In the main-app process, Telemetry.installHooks() sets this to observe tunnel log lines.
+    // The hook is always nil in the NE process → graceful no-op.
+
+    /// Called after every log line written by the tunnel. Fire-and-forget.
+    public static var telemetryOnLog: (@Sendable (String) -> Void)?
+
     public func writeLog(_ message: String?) {
         guard let message else {
             return
         }
         tunnel.writeMessage(message)
+        // Observe-only; fire-and-forget telemetry hook.
+        Task { ExtensionPlatformInterface.telemetryOnLog?(message) }
     }
 
     private var nwMonitor: NWPathMonitor?
