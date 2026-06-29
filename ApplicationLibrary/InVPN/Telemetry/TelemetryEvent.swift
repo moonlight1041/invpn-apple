@@ -39,7 +39,7 @@ public enum FailPhase: String, Codable, Sendable {
 
 /// Network context attached to an event.
 ///
-/// JSON keys: type, carrier, mcc_mnc, ssid, bssid, mtu.
+/// JSON keys: type, carrier, mcc_mnc, ssid, bssid, mtu, expensive, constrained.
 /// Nil optionals are OMITTED from JSON (synthesised `encodeIfPresent`).
 public struct NetContext: Codable, Sendable {
     public var type: String
@@ -48,6 +48,12 @@ public struct NetContext: Codable, Sendable {
     public var ssid: String?
     public var bssid: String?
     public var mtu: Int?
+    /// Whether the active path uses a metered (expensive) interface, e.g. cellular data.
+    /// Maps to NWPath.isExpensive. Stored in backend `extra` JSONB.
+    public var expensive: Bool?
+    /// Whether the active path is in Low Data Mode. Maps to NWPath.isConstrained.
+    /// Stored in backend `extra` JSONB.
+    public var constrained: Bool?
 
     public init(
         type: String,
@@ -55,23 +61,29 @@ public struct NetContext: Codable, Sendable {
         mccMnc: String? = nil,
         ssid: String? = nil,
         bssid: String? = nil,
-        mtu: Int? = nil
+        mtu: Int? = nil,
+        expensive: Bool? = nil,
+        constrained: Bool? = nil
     ) {
-        self.type    = type
-        self.carrier = carrier
-        self.mccMnc  = mccMnc
-        self.ssid    = ssid
-        self.bssid   = bssid
-        self.mtu     = mtu
+        self.type        = type
+        self.carrier     = carrier
+        self.mccMnc      = mccMnc
+        self.ssid        = ssid
+        self.bssid       = bssid
+        self.mtu         = mtu
+        self.expensive   = expensive
+        self.constrained = constrained
     }
 
     private enum CodingKeys: String, CodingKey {
         case type
         case carrier
-        case mccMnc  = "mcc_mnc"
+        case mccMnc     = "mcc_mnc"
         case ssid
         case bssid
         case mtu
+        case expensive
+        case constrained
     }
 }
 
