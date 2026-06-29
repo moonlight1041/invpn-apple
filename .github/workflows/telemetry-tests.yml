@@ -1,0 +1,19 @@
+name: TelemetryKit unit tests
+
+on:
+  push:
+    branches: ["feat/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: swift test
+        run: cd TelemetryKit && swift test -v

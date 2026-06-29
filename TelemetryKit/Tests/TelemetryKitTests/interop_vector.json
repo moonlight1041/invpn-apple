@@ -1,0 +1,22 @@
+{
+  "device_token": "interop-token-v1",
+  "key_hex": "fb83fdb46fdcf703e53cdaf3001fa03bd4ce792044058c92746a123c1db57e7b",
+  "batch": {
+    "schema": 1,
+    "device_id": "interop-device-1",
+    "events": [
+      {
+        "trigger": "heartbeat",
+        "ts": "2026-06-29T12:00:00Z",
+        "device_id": "interop-device-1"
+      }
+    ]
+  },
+  "plaintext_sha256": "034c3d1a85ccb0bbdeb04ee8ecb42a2da1d5ce7d9e67766626d2426d8efefde9",
+  "env": {
+    "v": 1,
+    "alg": "AES-256-GCM",
+    "nonce": "vm8xYi6bHK0chgXP",
+    "ct": "NXoNQwneFECfCyf7HCYTf5fEKv_p_VkuWtpdgcdlOdTZ2NB0NPr9ZOTvq4g988SRLKa8sJFt9nLe4u2ZSCp2xCJj06QEj7BhICV-2HFKQJXTiaBpwJAjIcZnsyNO7gLgLZNvu0LlPEaX3QfJxXNj1G3kq_BfnAA7V966t5-NetE5wNd6"
+  }
+}
